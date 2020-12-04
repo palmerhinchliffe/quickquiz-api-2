@@ -23,12 +23,12 @@ export class QuizRoom extends Room {
       console.log('ChatRoom received message from', client.sessionId, ':', message)
 
       // Broadcoast message to all
-      this.broadcast('messages', `(${client.sessionId}) ${message}`)
+      this.broadcast('messages', `${client.sessionId}: ${message}`)
     })
   }
 
   onJoin (client: Client, options: any) {
-    this.broadcast('messages', `(${client.sessionId}) joined`)
+    this.broadcast('messages', `(Server): ${client.sessionId} joined`)
 
     /*
     this.dispatcher.dispatch(new OnJoinQuiz(), {
