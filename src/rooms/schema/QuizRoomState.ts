@@ -2,7 +2,13 @@ import { Schema, MapSchema, type } from '@colyseus/schema'
 
 export class Player extends Schema {
   @type('string')
-  name: string = 'name'
+  name: string = ''
+
+  @type('boolean')
+  isLeader: boolean = false
+
+  @type('number')
+  score: number = 0
 }
 
 export class QuizRoomState extends Schema {

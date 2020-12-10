@@ -3,7 +3,7 @@
     "outDir": "lib",
     "target": "es6",
     "module": "commonjs",
-    "strict": true,
+    "strict": false,
     "strictNullChecks": false,
     "esModuleInterop": true,
     "experimentalDecorators": true
