@@ -1,10 +1,7 @@
 import { Room, Client } from 'colyseus'
 import { Dispatcher } from '@colyseus/command'
 import { QuizRoomState } from './schema/QuizRoomState'
-import { OnSetLeader } from './commands/OnSetLeader'
-import { OnJoinQuiz } from './commands/OnJoinQuiz'
-import { OnLeaveQuiz } from './commands/OnLeaveQuiz'
-import { OnPlayerSetName } from './commands/OnPlayerSetName'
+import * as Commands from './commands/Commands'
 
 export class QuizRoom extends Room<QuizRoomState> {
   dispatcher = new Dispatcher(this)
@@ -19,7 +16,7 @@ export class QuizRoom extends Room<QuizRoomState> {
 
     // On player setting name
     this.onMessage('setPlayerName', (client, message) => {
-      this.dispatcher.dispatch(new OnPlayerSetName(), {
+      this.dispatcher.dispatch(new Commands.OnPlayerSetName(), {
         sessionId: client.sessionId,
         name: message,
       })
@@ -30,9 +27,7 @@ export class QuizRoom extends Room<QuizRoomState> {
   }
 
   onJoin(client: any) {
-    this.dispatcher.dispatch(new OnJoinQuiz(), {
-      sessionId: client.sessionId,
-    })
+    this.dispatcher.dispatch(new Commands.OnJoinQuiz(), { sessionId: client.sessionId })
 
     // Broadcast joining to room chat
     this.broadcast('messages', `${client.sessionId} joined`)
@@ -42,9 +37,25 @@ export class QuizRoom extends Room<QuizRoomState> {
     // Broadcast leaving to room chat
     this.broadcast('messages', `${this.state.players[client.sessionId].name} disconnected`)
 
-    this.dispatcher.dispatch(new OnLeaveQuiz(), {
+    this.dispatcher.dispatch(new Commands.OnLeaveQuiz(), {
       sessionId: client.sessionId,
+      consented,
     })
+
+    // Player has lost connection
+    if (!consented) {
+      try {
+        await this.allowReconnection(client, 60)
+
+        // Regains connection
+        this.dispatcher.dispatch(new Commands.OnPlayerConnect(), { sessionId: client.sessionId })
+        this.broadcast('messages', `${this.state.players[client.sessionId].name} has returned!`)
+      } catch {
+        // Timeout
+        this.dispatcher.dispatch(new Commands.OnPlayerDisconnect(), { sessionId: client.sessionId })
+      }
+    }
+
   }
 
   onDispose() {
