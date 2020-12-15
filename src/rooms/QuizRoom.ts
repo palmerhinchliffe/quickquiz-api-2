@@ -9,6 +9,9 @@ export class QuizRoom extends Room<QuizRoomState> {
   onCreate(options: any) {
     this.setState(new QuizRoomState())
 
+    // Set quiz metadata using options from client (Name, ...)
+    this.setMetadata({ name: options.name })
+
     // Broadcast chat messages
     this.onMessage('message', (client, message) => {
       this.broadcast('messages', `${this.state.players[client.sessionId].name}: ${message}`)
