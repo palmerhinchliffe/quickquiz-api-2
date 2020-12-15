@@ -51,8 +51,8 @@ export class QuizRoom extends Room<QuizRoomState> {
         this.dispatcher.dispatch(new Commands.OnPlayerConnect(), { sessionId: client.sessionId })
         this.broadcast('messages', `${this.state.players[client.sessionId].name} has returned!`)
       } catch {
-        // Timeout
-        this.dispatcher.dispatch(new Commands.OnPlayerDisconnect(), { sessionId: client.sessionId })
+        // ...or times out
+        this.dispatcher.dispatch(new Commands.OnPlayerReconnectTimeout(), { sessionId: client.sessionId })
       }
     }
 

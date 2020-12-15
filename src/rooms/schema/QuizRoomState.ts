@@ -15,6 +15,9 @@ export class Player extends Schema {
 }
 
 export class QuizRoomState extends Schema {
+  @type('string')
+  name: string = ''
+  
   @type('number')
   playersCount: number = 0
   
