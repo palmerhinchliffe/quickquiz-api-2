@@ -1,46 +1,61 @@
 import { Room, Client } from 'colyseus'
 import { Dispatcher } from '@colyseus/command'
-import { QuizRoomState } from './schema/QuizRoomState'
-import * as Commands from './commands/Commands'
+import { RoomState } from './schema/RoomState'
+import * as PlayerCommands from './commands/PlayerCommands'
+import * as QuizCommands from './commands/QuizCommands'
 
-export class QuizRoom extends Room<QuizRoomState> {
+export class QuizRoom extends Room<RoomState> {
   dispatcher = new Dispatcher(this)
 
   onCreate(options: any) {
-    this.setState(new QuizRoomState())
+    this.setState(new RoomState())
 
     // Set quiz metadata using options from client (Name, ...)
     this.setMetadata({ name: options.name })
 
+    // Set quiz questions by retrieving questions using category ID, with default options
+    this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { categoryId: options.categoryID })
+
     // Broadcast chat messages
-    this.onMessage('message', (client, message) => {
-      this.broadcast('messages', `${this.state.players[client.sessionId].name}: ${message}`)
+    this.onMessage('chat', (client, message) => {
+      this.broadcast('chat', `${this.state.players[client.sessionId].name}: ${message}`)
+    })
+
+    // On changing category
+    this.onMessage('setCategory', (client, message) => {
+      this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { categoryId: options.categoryID })
+      this.broadcast('chat', `${this.state.players[client.sessionId].name}: ${message}`)
+    })
+
+    // On changing ready status
+    this.onMessage('setPlayerReady', (client, message) => {
+      this.dispatcher.dispatch(new PlayerCommands.OnSetReadyStatus(), { sessionId: client.sessionId, readyStatus: message })
     })
 
     // On player setting name
     this.onMessage('setPlayerName', (client, message) => {
-      this.dispatcher.dispatch(new Commands.OnPlayerSetName(), {
+      this.dispatcher.dispatch(new PlayerCommands.OnSetName(), {
         sessionId: client.sessionId,
         name: message,
       })
 
       // Broadcast name change to room chat
-      this.broadcast('messages', `${client.sessionId} changed their name to ${message}`)
+      this.broadcast('chat', `${client.sessionId} changed their name to ${message}`)
     })
   }
 
   onJoin(client: any) {
-    this.dispatcher.dispatch(new Commands.OnJoinQuiz(), { sessionId: client.sessionId })
+    this.dispatcher.dispatch(new PlayerCommands.OnJoin(), { sessionId: client.sessionId })
 
     // Broadcast joining to room chat
-    this.broadcast('messages', `${client.sessionId} joined`)
+    this.broadcast('chat', `${client.sessionId} joined`)
   }
 
   async onLeave(client: Client, consented: boolean) {
     // Broadcast leaving to room chat
-    this.broadcast('messages', `${this.state.players[client.sessionId].name} disconnected`)
+    this.broadcast('chat', `${this.state.players[client.sessionId].name} disconnected`)
 
-    this.dispatcher.dispatch(new Commands.OnLeaveQuiz(), {
+    this.dispatcher.dispatch(new PlayerCommands.OnLeave(), {
       sessionId: client.sessionId,
       consented,
     })
@@ -48,14 +63,14 @@ export class QuizRoom extends Room<QuizRoomState> {
     // Player has lost connection
     if (!consented) {
       try {
-        await this.allowReconnection(client, 60)
+        this.allowReconnection(client, 60)
 
         // Regains connection
-        this.dispatcher.dispatch(new Commands.OnPlayerConnect(), { sessionId: client.sessionId })
-        this.broadcast('messages', `${this.state.players[client.sessionId].name} has returned!`)
+        this.dispatcher.dispatch(new PlayerCommands.OnConnect(), { sessionId: client.sessionId })
+        this.broadcast('chat', `${this.state.players[client.sessionId].name} has returned!`)
       } catch {
         // ...or times out
-        this.dispatcher.dispatch(new Commands.OnPlayerReconnectTimeout(), { sessionId: client.sessionId })
+        this.dispatcher.dispatch(new PlayerCommands.OnReconnectTimeout(), { sessionId: client.sessionId })
       }
     }
 

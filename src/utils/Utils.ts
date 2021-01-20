@@ -31,5 +31,7 @@ export const stringifyResponseCode = responseCode => {
     case 4:
       return 'Session Token has returned all possible questions for the specified query'
       break
+    default:
+      return 'Unknown error'
   }
 }
