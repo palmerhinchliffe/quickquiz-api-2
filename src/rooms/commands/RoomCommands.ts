@@ -1,7 +1,7 @@
 import { Command } from '@colyseus/command'
 import { RoomState } from '../schema/RoomState'
 
-/** When new quiz leader set
+/** When new room leader set
 *
 **/
 export class OnSetLeader extends Command<RoomState, { sessionId: string }> {

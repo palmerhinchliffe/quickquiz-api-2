@@ -7,14 +7,14 @@ import * as QuizCommands from './commands/QuizCommands'
 export class QuizRoom extends Room<RoomState> {
   dispatcher = new Dispatcher(this)
 
-  onCreate(options: any) {
+  onCreate({ options, client}: any) {
     this.setState(new RoomState())
 
     // Set quiz metadata using options from client (Name, ...)
     this.setMetadata({ name: options.name })
 
     // Set quiz questions by retrieving questions using category ID, with default options
-    this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { categoryId: options.categoryID })
+    this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { sessionId: client.sessionId, categoryId: options.category })
 
     // Broadcast chat messages
     this.onMessage('chat', (client, message) => {
@@ -23,7 +23,7 @@ export class QuizRoom extends Room<RoomState> {
 
     // On changing category
     this.onMessage('setCategory', (client, message) => {
-      this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { categoryId: options.categoryID })
+      this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { sessionId: client.sessionId, categoryId: options.category })
       this.broadcast('chat', `${this.state.players[client.sessionId].name}: ${message}`)
     })
 
