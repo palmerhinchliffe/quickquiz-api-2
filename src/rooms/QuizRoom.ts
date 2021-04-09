@@ -7,11 +7,11 @@ import * as QuizCommands from './commands/QuizCommands'
 export class QuizRoom extends Room<RoomState> {
   dispatcher = new Dispatcher(this)
 
-  onCreate({ options, client}: any) {
+  onCreate({ options, client }: any) {
     this.setState(new RoomState())
 
     // Set quiz metadata using options from client (Name, ...)
-    this.setMetadata({ name: options.name })
+    // this.setMetadata({ name: options.name })
 
     // Set quiz questions by retrieving questions using category ID, with default options
     this.dispatcher.dispatch(new QuizCommands.OnSetCategory(), { sessionId: client.sessionId, categoryId: options.category })

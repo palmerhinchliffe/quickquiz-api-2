@@ -14,7 +14,7 @@ export const getAllCategories = () => {
 }
 
 // Incorporate getAvailableQuestions into this to return category data in 1 promise?
-export const getCategoryById = id => {
+export const getCategoryById = (id: string) => {
   return new Promise((resolve, reject) => {
     axios.get('https://opentdb.com/api_category.php')
       .then(response => {
@@ -29,7 +29,7 @@ export const getCategoryById = id => {
   })
 }
 
-export const getAvailableQuestions = id => {
+export const getAvailableQuestions = (id: number) => {
   return new Promise((resolve, reject) => {
     axios.get('https://opentdb.com/api_count.php?category=' + id)
       .then(response => {
@@ -50,7 +50,7 @@ export const getAvailableQuestions = id => {
   })
 }
 
-export const getQuizQuestions = (amount, category, difficulty) => {
+export const getQuizQuestions = (amount: number, category: string, difficulty: string) => {
   return new Promise((resolve, reject) => {
     if (difficulty !== undefined) {
       difficulty = '&difficulty=' + difficulty
@@ -88,7 +88,7 @@ export const newSessionToken = () => {
   })
 }
 
-export const resetSessionToken = (token) => {
+export const resetSessionToken = (token: string) => {
   return new Promise((resolve, reject) => {
     axios.get('https://opentdb.com/api_token.php?command=reset&token=' + token)
       .then(response => {
